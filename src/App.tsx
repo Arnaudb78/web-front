@@ -17,6 +17,7 @@ function App() {
     const [artists, setArtists] = useState<Artist[]>([]);
     const [createdArtist, setCreatedArtist] = useState<Artist | null>(null);
     const [error, setError] = useState<string | null>(null);
+    const [findArtist, setFindArtist] = useState<Artist | null>(null);
 
     const handleClickArtists = async () => {
         setLoading(true);
@@ -60,6 +61,31 @@ function App() {
         }
     };
 
+    const handleClickSearchArtist = async () => {
+        setLoading(true);
+        setError(null);
+        try {
+            const nom = document.getElementById("searchName") as HTMLInputElement;
+
+            // Utiliser encodeURIComponent pour encoder correctement le nom de l'artiste dans l'URL
+            const encodedNom = encodeURIComponent(nom.value);
+
+            // Construire l'URL avec le nom de l'artiste encodé
+            const url = `http://localhost:8000/search/artists/${encodedNom}`;
+
+            // Envoyer la requête GET avec l'URL construit
+            const response: AxiosResponse<Artist> = await axios.get(url);
+            setFindArtist(response.data);
+        } catch (err) {
+            setError('Une erreur s\'est produite lors de l\'appel à l\'API');
+        } finally {
+            setLoading(false);
+        }
+    };
+
+
+
+
 
 
     return (
@@ -76,6 +102,13 @@ function App() {
                         <pre>{JSON.stringify(artist, null, 2)}</pre>
                     </div>
                 ))}
+                {error && <p className="error">{error}</p>}
+                {createdArtist && (
+                    <div className="success">
+                        <h3>Artiste créé avec succès :</h3>
+                        <pre>{JSON.stringify(createdArtist, null, 2)}</pre>
+                    </div>
+                )}
             </div>
             <br/>
             <div className="artist-form">
@@ -115,6 +148,33 @@ function App() {
                     </div>
                 )}
             </div>
+            <br/>
+            <div>
+                <h2>Recherchez un artiste par son nom</h2>
+                <div className="input-group">
+                    <label htmlFor="searchName">nom :</label>
+                    <input id="searchName" type="text"/>
+                </div>
+                <button onClick={handleClickSearchArtist} disabled={loading}>
+                    {loading ? 'Chargement...' : 'Récupérer l\'artiste'}
+                </button>
+                <div className="artist-search-results">
+                    {/* Afficher la réponse de la recherche uniquement ici */}
+                    {createdArtist && (
+                        <div className="success">
+                            <h3>Artiste trouvé :</h3>
+                            <pre>{JSON.stringify(createdArtist, null, 2)}</pre>
+                        </div>
+                    )}
+                    {error && <p className="error">{error}</p>}
+                    {findArtist && (
+                        <div className="success">
+                            <pre>{JSON.stringify(findArtist, null, 2)}</pre>
+                        </div>
+                    )}
+                </div>
+            </div>
+
 
         </>
     );
